@@ -4,6 +4,10 @@
 
 Works on macOS, Linux, and Windows.
 
+## Fork
+
+Note: this is a fork of ps-list (https://github.com/sindresorhus/ps-list), in order to provide a fully JavaScript implementation. This reverts the Windows implementation to use task-list (https://github.com/sindresorhus/ps-list/pull/21, upgraded in ps-list@6.0.0 to use fast-list https://github.com/MarkTiedemann/fastlist).
+
 ## Install
 
 ```sh
@@ -44,4 +48,4 @@ On Windows this has no effect and will always be the users' own processes.
 
 ## Related
 
-- [fastlist](https://github.com/MarkTiedemann/fastlist) - The binary used in this module to list the running processes on Windows
+- [tasklist](https://github.com/sindresorhus/ps-list) - The JavaScript wrapper around the native Windows `tasklist` util.

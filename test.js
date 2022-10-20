@@ -7,6 +7,10 @@ const isWindows = process.platform === 'win32';
 const nodeBinaryName = isWindows ? 'node.exe' : 'node';
 const testBinaryName = isWindows ? nodeBinaryName : 'ava';
 
+// Note: the Windows implementation is taken verbatim from task-list@5.0.1:
+// fe0f3911549094bae4902a4a9536a0c819bcc2bb. Changes to these tests were
+// required in order to reflect the difference in data returned by tasklist vs
+// fastlist.
 test('main', async t => {
 	const list = await psList();
 
@@ -20,14 +24,14 @@ test('main', async t => {
 		list.every(x =>
 			typeof x.pid === 'number'
 			&& typeof x.name === 'string'
-			&& typeof x.ppid === 'number',
+			&& typeof x.cmd === 'string',
 		),
 	);
 
 	if (!isWindows) {
 		t.true(
 			list.every(x =>
-				typeof x.cmd === 'string'
+				typeof x.ppid === 'number'
 				&& typeof x.cpu === 'number'
 				&& typeof x.memory === 'number'
 				&& typeof x.uid === 'number',
@@ -58,10 +62,10 @@ test('custom binary', async t => {
 
 	t.is(record.pid, sleepForever.pid);
 	t.is(record.name, nodeBinaryName);
-	t.is(record.ppid, process.pid);
 
 	if (!isWindows) {
 		t.is(record.cmd, `${nodeBinaryName} ${args.join(' ')}`);
+		t.is(record.ppid, process.pid);
 		t.is(record.uid, process.getuid());
 	}
 });

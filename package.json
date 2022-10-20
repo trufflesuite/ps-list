@@ -37,6 +37,9 @@
 		"running",
 		"tasklist"
 	],
+	"dependencies": {
+		"tasklist": "^3.1.0"
+	},
 	"devDependencies": {
 		"ava": "^3.15.0",
 		"tsd": "^0.18.0",
