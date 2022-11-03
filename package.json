@@ -16,14 +16,21 @@
 			"email": "jeff.smale@consensys.net"
 		}
 	],
-	"exports": "./index.js",
+	"exports": {
+		".": {
+			"import": "./index.js",
+			"require": "./index.cjs"
+		}
+	},
 	"engines": {
 		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
 	},
 	"scripts": {
-		"test": "xo && ava && tsd"
+		"test": "xo && ava && tsd",
+		"build:cjs": "npx rollup ./index.js -f cjs -o ./index.cjs"
 	},
 	"files": [
+		"index.cjs",
 		"index.js",
 		"index.d.ts"
 	],
@@ -40,6 +47,7 @@
 		"tasklist": "^3.1.0"
 	},
 	"devDependencies": {
+		"rollup": "^3.2.3",
 		"ava": "^3.15.0",
 		"tsd": "^0.18.0",
 		"xo": "^0.46.4"
