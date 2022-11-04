@@ -1,64 +1,48 @@
 import process from 'node:process';
-import {promisify} from 'node:util';
 import path from 'node:path';
-import {fileURLToPath} from 'node:url';
-import childProcess from 'node:child_process';
+import * as childProcess from 'node:child_process';
+import {promisify} from 'node:util';
+import tasklist from 'tasklist';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-const TEN_MEGABYTES = 1000 * 1000 * 10;
 const execFile = promisify(childProcess.execFile);
+const TEN_MEGABYTES = 1000 * 1000 * 10;
 
-const windows = async () => {
-	// Source: https://github.com/MarkTiedemann/fastlist
-	let binary;
-	switch (process.arch) {
-		case 'x64':
-			binary = 'fastlist-0.3.0-x64.exe';
-			break;
-		case 'ia32':
-			binary = 'fastlist-0.3.0-x86.exe';
-			break;
-		default:
-			throw new Error(`Unsupported architecture: ${process.arch}`);
-	}
-
-	const binaryPath = path.join(__dirname, 'vendor', binary);
-	const {stdout} = await execFile(binaryPath, {
-		maxBuffer: TEN_MEGABYTES,
-		windowsHide: true,
-	});
-
-	return stdout
-		.trim()
-		.split('\r\n')
-		.map(line => line.split('\t'))
-		.map(([pid, ppid, name]) => ({
-			pid: Number.parseInt(pid, 10),
-			ppid: Number.parseInt(ppid, 10),
-			name,
-		}));
-};
+// Note: the Windows implementation is taken verbatim from task-list@5.0.1:
+// fe0f3911549094bae4902a4a9536a0c819bcc2bb. The non-Windows implementation
+// should (probably) be kept up-to-date with the upstream fork.
+function win() {
+	return tasklist().then(data =>
+		data.map(x => ({
+			pid: x.pid,
+			name: x.imageName,
+			cmd: x.imageName,
+		})),
+	);
+}
 
 const nonWindowsMultipleCalls = async (options = {}) => {
 	const flags = (options.all === false ? '' : 'a') + 'wwxo';
 	const returnValue = {};
 
-	await Promise.all(['comm', 'args', 'ppid', 'uid', '%cpu', '%mem'].map(async cmd => {
-		const {stdout} = await execFile('ps', [flags, `pid,${cmd}`], {maxBuffer: TEN_MEGABYTES});
+	await Promise.all(
+		['comm', 'args', 'ppid', 'uid', '%cpu', '%mem'].map(async cmd => {
+			const {stdout} = await execFile('ps', [flags, `pid,${cmd}`], {
+				maxBuffer: TEN_MEGABYTES,
+			});
 
-		for (let line of stdout.trim().split('\n').slice(1)) {
-			line = line.trim();
-			const [pid] = line.split(' ', 1);
-			const value = line.slice(pid.length + 1).trim();
+			for (let line of stdout.trim().split('\n').slice(1)) {
+				line = line.trim();
+				const [pid] = line.split(' ', 1);
+				const value = line.slice(pid.length + 1).trim();
 
-			if (returnValue[pid] === undefined) {
-				returnValue[pid] = {};
+				if (returnValue[pid] === undefined) {
+					returnValue[pid] = {};
+				}
+
+				returnValue[pid][cmd] = value;
 			}
-
-			returnValue[pid][cmd] = value;
-		}
-	}));
+		}),
+	);
 
 	// Filter out inconsistencies as there might be race
 	// issues due to differences in `ps` between the spawns
@@ -144,6 +128,6 @@ const nonWindows = async (options = {}) => {
 	}
 };
 
-const psList = process.platform === 'win32' ? windows : nonWindows;
+const psList = process.platform === 'win32' ? win : nonWindows;
 
 export default psList;
