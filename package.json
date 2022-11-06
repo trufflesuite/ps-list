@@ -25,6 +25,11 @@
 	"engines": {
 		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
 	},
+	"xo": {
+		"rules": {
+			"unicorn/prefer-node-protocol": "off"
+		}
+	},
 	"scripts": {
 		"test": "xo && ava && tsd",
 		"build:cjs": "npx rollup ./index.js -f cjs -o ./index.cjs"
