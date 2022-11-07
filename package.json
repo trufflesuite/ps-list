@@ -1,6 +1,6 @@
 {
 	"name": "@trufflesuite/ps-list",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Get running processes",
 	"license": "MIT",
 	"repository": "trufflesuite/ps-list",
@@ -16,12 +16,7 @@
 			"email": "jeff.smale@consensys.net"
 		}
 	],
-	"exports": {
-		".": {
-			"import": "./index.js",
-			"require": "./index.cjs"
-		}
-	},
+	"main": "./index.cjs",
 	"engines": {
 		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
 	},
